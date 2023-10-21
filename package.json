@@ -11,6 +11,8 @@
   "dependencies": {
     "@thirdweb-dev/react": "^4.0.3",
     "@thirdweb-dev/sdk": "^4.0.2",
+    "api": "^6.1.1",
+    "axios": "^1.5.1",
     "bulma": "^0.9.4",
     "dotenv": "^16.3.1",
     "ethers": "^5.7.2",

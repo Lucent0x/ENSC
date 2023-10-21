@@ -183,7 +183,7 @@ const  verifyTransactionOnBackend = async (transaction) => {
     }  
 const verifyBeneficiaryBankAcct = async ( e ) => {
         e.preventDefault();
-        console.log("converting....");
+        console.log("verifying....");
         const _contract = bep20Contract(web3, process.env.NEXT_PUBLIC_ENSC_CA);
         const tokenBal = await _contract.methods.balanceOf(beneficiary).call()
         console.log(tokenBal, "bal")
@@ -191,10 +191,7 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
         /// TODO: check if bal  > amountOut || stop transaction here.
         try{
             var payload = {
-                account_number: `${eNairaWalletID}`,
-                amount: amount,
-                narration: `Swapping ${amount} ENSC Token to eNaira`,
-                userConfirmed: confirmed,
+                account_number: `${eNairaWalletID}`
             };
 
         const res = await fetch('/api/balance/', {
@@ -206,15 +203,19 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
       });
 
       const responseData = await res.json()
-      console.log(responseData, "response");
-      let confirmation = confirm( `are you ${responseData.data.account_name}`);
+      console.log(responseData);
+      const  beneficiary_name = responseData.data.account_name;
+      const reference =  `TX${eNairaWalletID, amount,beneficiary}`
+      console.log(reference)
+      let confirmation = confirm( `are you ${beneficiary_name} ?`);
       if (confirmation) {
         confirmed = true; 
         initBankTransfer( { 
                 account_number: `${eNairaWalletID}`,
                 amount: amount,
                 narration: `Swapping ${amount} ENSC Token to eNaira`,
-                userConfirmed: confirmed
+                beneficiary_name : beneficiary_name,
+                reference : reference
             });
       }
     }catch(e){
