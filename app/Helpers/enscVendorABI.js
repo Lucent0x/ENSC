@@ -2,128 +2,27 @@ const VENDOR_ABI=[
 	{
 		"inputs": [
 			{
-				"internalType": "address payable",
-				"name": "_wallet",
-				"type": "address"
-			},
-			{
-				"internalType": "address payable",
-				"name": "_feesWallet",
-				"type": "address"
-			},
-			{
-				"internalType": "contract ERC20",
-				"name": "_token",
-				"type": "address"
-			},
-			{
 				"internalType": "address",
-				"name": "_usdc",
+				"name": "tokenAddress",
 				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "_usdt",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_usdRate",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_purchaseStartTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_purchaseEndTime",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_lockupPeriod",
-				"type": "uint256"
 			}
 		],
+		"name": "addTokenToWhitelist",
+		"outputs": [],
 		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "purchaser",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "beneficiary",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "tokens",
-				"type": "uint256"
-			}
-		],
-		"name": "TokenPurchase",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "vendor",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "beneficiary",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "tokens",
-				"type": "uint256"
-			}
-		],
-		"name": "TokenSwapped",
-		"type": "event"
-	},
-	{
-		"inputs": [],
-		"name": "ENSC_Token",
-		"outputs": [
-			{
-				"internalType": "contract ERC20",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "ENSC_Wallet",
-		"outputs": [
+		"inputs": [
 			{
-				"internalType": "address payable",
-				"name": "",
+				"internalType": "address",
+				"name": "_address",
 				"type": "address"
 			}
 		],
-		"stateMutability": "view",
+		"name": "blacklistAddress",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -239,42 +138,16 @@ const VENDOR_ABI=[
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "USDC",
-		"outputs": [
+		"inputs": [
 			{
 				"internalType": "address",
-				"name": "",
+				"name": "_address",
 				"type": "address"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "USDT",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "USD_RATE",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
+		"name": "removeAddressFromBlacklist",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -285,10 +158,200 @@ const VENDOR_ABI=[
 				"type": "address"
 			}
 		],
-		"name": "addTokenToWhitelist",
+		"name": "removeTokenFromWhitelist",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_usdt",
+				"type": "address"
+			}
+		],
+		"name": "setUSDC",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_usdt",
+				"type": "address"
+			}
+		],
+		"name": "setUSDT",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "_wallet",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "_feesWallet",
+				"type": "address"
+			},
+			{
+				"internalType": "contract ERC20",
+				"name": "_token",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_usdc",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_usdt",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_usdRate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_purchaseStartTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_purchaseEndTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_lockupPeriod",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "purchaser",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokens",
+				"type": "uint256"
+			}
+		],
+		"name": "TokenPurchase",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "vendor",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "beneficiary",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "tokens",
+				"type": "uint256"
+			}
+		],
+		"name": "TokenSwapped",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_time",
+				"type": "uint256"
+			}
+		],
+		"name": "updateLockPeriod",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_time",
+				"type": "uint256"
+			}
+		],
+		"name": "updatePurchaseEndTime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_time",
+				"type": "uint256"
+			}
+		],
+		"name": "updatePurchaseStartTime",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_newRate",
+				"type": "uint256"
+			}
+		],
+		"name": "updateRate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdrawBalance",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	},
 	{
 		"inputs": [],
@@ -323,19 +386,6 @@ const VENDOR_ABI=[
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_address",
-				"type": "address"
-			}
-		],
-		"name": "blacklistAddress",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "blacklistCount",
 		"outputs": [
@@ -343,6 +393,32 @@ const VENDOR_ABI=[
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ENSC_Token",
+		"outputs": [
+			{
+				"internalType": "contract ERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "ENSC_Wallet",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
 			}
 		],
 		"stateMutability": "view",
@@ -442,58 +518,6 @@ const VENDOR_ABI=[
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "_address",
-				"type": "address"
-			}
-		],
-		"name": "removeAddressFromBlacklist",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "tokenAddress",
-				"type": "address"
-			}
-		],
-		"name": "removeTokenFromWhitelist",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_usdt",
-				"type": "address"
-			}
-		],
-		"name": "setUSDC",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_usdt",
-				"type": "address"
-			}
-		],
-		"name": "setUSDT",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
 				"name": "",
 				"type": "address"
 			},
@@ -515,55 +539,42 @@ const VENDOR_ABI=[
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "USD_RATE",
+		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "_time",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "updateLockPeriod",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "USDC",
+		"outputs": [
 			{
-				"internalType": "uint256",
-				"name": "_time",
-				"type": "uint256"
+				"internalType": "address",
+				"name": "",
+				"type": "address"
 			}
 		],
-		"name": "updatePurchaseEndTime",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "USDT",
+		"outputs": [
 			{
-				"internalType": "uint256",
-				"name": "_time",
-				"type": "uint256"
+				"internalType": "address",
+				"name": "",
+				"type": "address"
 			}
 		],
-		"name": "updatePurchaseStartTime",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_newRate",
-				"type": "uint256"
-			}
-		],
-		"name": "updateRate",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -591,17 +602,6 @@ const VENDOR_ABI=[
 		],
 		"stateMutability": "view",
 		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "withdrawBalance",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"stateMutability": "payable",
-		"type": "receive"
 	}
 ]
 const vendorContract = web3 => {

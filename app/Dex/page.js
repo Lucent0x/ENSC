@@ -275,10 +275,7 @@ const connectWalletHandler = async ( ) => {
         </div>
         <div className={styles.right}>
             <div className={styles.left2}>
-                {/* <ul> 
-                    <li> <a href="#"> Swap </a></li>
-                    <li> <a href="#"> Tokens </a></li>
-                </ul> */}
+            
             </div>
             <div className={styles.right2}>
                 {addr? ( <span className="button is-primary is-dark">{addr}</span> ) 

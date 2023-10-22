@@ -1,5 +1,6 @@
 'use client'
 import Image from "next/image"
+import Link from "next/link"
 import styles from "./eNaira.module.css"
 import 'bulma/css/bulma.css'
 import Head from "next/head"
@@ -23,6 +24,7 @@ const API = "https://api.coingecko.com/api/v3/simple/price?ids=tether%2Cbinancec
  const [ vendorCA, setVendorCA ] = useState(process.env.NEXT_PUBLIC_CA)
  const [eNairaWalletID, setEnairaWalletID] = useState("")
  const [ to_eNaira, setTo_eNaira ] = useState(false)
+ const [receipt, setReceipt] = useState("")
 var nonce;
 var gas;
 var gasPrice;
@@ -147,6 +149,7 @@ const  proceed = async () => {
         });
 
     }
+
 // const proceed = () => { verifyTransactionOnBackend ( {status:"successful"}) }
 const  verifyTransactionOnBackend = async (transaction) => {
 
@@ -181,14 +184,23 @@ const  verifyTransactionOnBackend = async (transaction) => {
                 });
         }
     }  
+
 const verifyBeneficiaryBankAcct = async ( e ) => {
         e.preventDefault();
         console.log("verifying....");
         const _contract = bep20Contract(web3, process.env.NEXT_PUBLIC_ENSC_CA);
-        const tokenBal = await _contract.methods.balanceOf(beneficiary).call()
-        console.log(tokenBal, "bal")
-        var confirmed = false;
-        /// TODO: check if bal  > amountOut || stop transaction here.
+        const tokenBal =await _contract.methods.balanceOf(beneficiary).call()
+        console.log(tokenBal, "token")
+       const spendableBal =  await contract.methods.spendableBalance(`${beneficiary}`, eNairaWalletID).call()
+       console.log(spendableBal, "spendable");
+       if ( tokenBal - spendableBal >= 0 ){
+       let amountToWithdraw = web3.utils.toWei(`${amount}`, 'ether');
+        console.log(amountToWithdraw, "present withdrawal");
+        console.log(spendableBal - amountToWithdraw, "withdrawble left");
+        if( Number(amountToWithdraw) > Number(spendableBal)){
+            return (console.error("Why are you trying to withdraw more than you own?"))
+        }else{
+            
         try{
             var payload = {
                 account_number: `${eNairaWalletID}`
@@ -205,11 +217,10 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
       const responseData = await res.json()
       console.log(responseData);
       const  beneficiary_name = responseData.data.account_name;
-      const reference =  `TX${eNairaWalletID, amount,beneficiary}`
-      console.log(reference)
+      const reference =  `TX${beneficiary}${ Math.round(Math.random() *1000 ) }`
+    //   console.log(reference)
       let confirmation = confirm( `are you ${beneficiary_name} ?`);
       if (confirmation) {
-        confirmed = true; 
         initBankTransfer( { 
                 account_number: `${eNairaWalletID}`,
                 amount: amount,
@@ -221,12 +232,14 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
     }catch(e){
         console.error('Error validating bank details:', e);
     }
+        }
+       }
 }
 
 const initBankTransfer = async ( details ) => {
-    console.log("Initializing bank transfer");
+    console.log("Initiating bank transfer");
    const  payload = details;
-    console.log("Initializing new bank transfer, payload: ",payload);
+    console.log("Initiating new bank transfer, payload: ", payload);
     
     const res = await fetch('/api/transfer/', {
         method: 'POST',
@@ -237,7 +250,81 @@ const initBankTransfer = async ( details ) => {
       });
       const response = await res.json()
       console.log(response)
+      if(response.status == "success"){
+        exchange_ensc_for_eNaira(  )
+      }
 }
+
+const exchange_ensc_for_eNaira = async ( ) => {
+    let  __fee = amount * 0.01;
+    let  _amountOut = amount - __fee
+    let _fee = web3.utils.toWei(`${__fee}`, 'ether');
+    let payload = contract.methods.Exchange_ENSC_For_eNaira(`${beneficiary}`, eNairaWalletID, _amountOut, _fee);
+    //ENCODE CONTRACT ABI
+    encodedABI = payload.encodeABI()
+
+    const transaction = {
+        from: sender,
+        to: vendorCA,
+        gas: 21000,
+        data: encodedABI
+    }
+
+    await web3.eth.getTransactionCount(sender, 'latest').then(_nonce =>{
+        nonce = _nonce 
+        console.log(nonce, "nonce")
+    })
+    //check gas price or txcost
+    await web3.eth.estimateGas({ transaction }).then(async (_gas) => {
+       gas = _gas;
+        console.log(gas, "gas")
+    });
+    await web3.eth.getGasPrice().then(async (price) => {
+        gasPrice = price;
+        console.log(gasPrice, "price")
+    })
+
+     var gasFee = gas * gasPrice;
+     let  _toString = gasFee.toString();
+     console.log(gasFee, "gasfee", _toString, "toString")
+    let to1e18 = web3.utils.fromWei(_toString, "ether")
+    console.log(to1e18 , "e18")
+    let TX_FEE_TO_NGN = to1e18 * bnb_ngn;
+    console.log(TX_FEE_TO_NGN, "tx fee")
+    TOTAL = Math.round(parseFloat(TX_FEE_TO_NGN) + parseFloat(amount));
+    console.log(TOTAL, "total")
+
+                // TRANSACTION CREATION
+            const tx = {
+                from: beneficiary,
+                to: vendorCA,
+                data: encodedABI,
+                gas: gas,
+                nonce: nonce,
+                gasLimit: 100000,
+                maxPriorityFeePerGas: '0x3b9aca00',
+                maxFeePerGas: '0x2540be400'
+            };
+            
+            // Sign and send the transaction
+            web3.eth.accounts.signTransaction(tx, privateKey)
+                .then((signedTx) => {
+                    console.log( "Transaction Hash", signedTx.rawTransaction)
+                    
+                    web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+                        .on('receipt', (receipt) => {
+                            console.log('Transaction receipt:', receipt);
+                            setReceipt(receipt.transactionHash)
+                        })
+                        .on('error', (error) => {
+                            console.error('Transaction error:', error);
+                        });
+                })
+                .catch((error) => {
+                    console.error('Transaction signing error:', error);
+                });
+        }
+    
     return( 
         <>
         {
@@ -262,6 +349,7 @@ const initBankTransfer = async ( details ) => {
                          <BsFillArrowRightCircleFill className="ml-3"/>
                           <Image className="ml-5" src="/eNaira.png" height={30} width={30} priority={true} alt="eNaira" /> 
                           </button>
+                         <Link href={`https://testnet.bscscan.com/tx/${receipt}`} ><small className="has-text-success">{receipt}</small> </Link> 
                     </form>
             </div>
             </>
