@@ -6,8 +6,8 @@ import {BsArrowDownUp} from 'react-icons/bs'
 import {BiSolidWalletAlt} from 'react-icons/bi'
 import vendorContract from "../Helpers/enscVendorABI"
 import bep20Contract from "../Helpers/bep20Token"
-import erc20Contract from "../Helpers/erc20Token"
 import whitelistedTokens from "../Helpers/whitelistedTokens"
+import {BsFillCaretDownFill} from "react-icons/bs"
 import { useEffect, useState } from "react"
 import Web3 from "web3"
 
@@ -22,7 +22,6 @@ const [account, setAccount ] = useState("")
 const [addr, setAddr ] = useState("")
 const [vendorContract_, setVendorContract_] = useState()
 const [ ensc_contract, setEnsc_contract ] = useState("")
-const [enscBalance, setEnscBalance ] = useState("")
 const usdc_contractAddress = "0x64544969ed7EBf5f083679233325356EbE738930";
 const usdt_contractAddress = "0x337610d27c682E347C9cD60BD4b3b107C9d34dDd";
 const [ amountIn, setAmountIn] = useState(0)
@@ -31,7 +30,7 @@ const [tokenInBalance_, setTokenInBalance_] = useState("")
 const [tokenOutBalance_, setTokenOutBalance_] = useState("")
 const [tokenOut, setTokenOut ] = useState({
       name: "ENSC Energy", ca: process.env.NEXT_PUBLIC_ENSC_CA, 
-   logo: "/ensc.png", symbol: "ENSC", decimal: 18
+   logo: "/ENSC.png", symbol: "ENSC", decimal: 18
 })
 const [tokenIn, setTokenIn ] = useState({
     name: "Tether USD₮", ca: usdt_contractAddress, 
@@ -266,11 +265,10 @@ const connectWalletHandler = async ( ) => {
 
     return ( 
     <>
-    <title>ENSC DEX</title>
     <div className={styles.header}>
         <div className={styles.left}>
             <div className="logo">
-              <Image src="/ENSC.png" alt=""  height={60} width={60} priority={true}/> 
+              <Image src="/ENSC.png" alt="ensc logo"  height={60} width={60} priority={true}/> 
             </div>
         </div>
         <div className={styles.right}>
@@ -295,9 +293,9 @@ const connectWalletHandler = async ( ) => {
                         <div className={styles.coinData}>
                             <div className={styles.bal}> Bal: <small> {tokenOutBalance_.substring(0,5)}  </small></div>
                             <div className={styles.metadata}>
-                                <img id="logo1" src={tokenOut.logo} alt=""/>
+                                <img id="logo1" src={tokenOut.logo} alt="token out"/>
                                 <span><b >{tokenOut.symbol}</b> </span>
-                                <span className={styles.clickable}> <i className="fa-solid fa-angle-down"></i></span>
+                                <span className={styles.clickable}></span>
                             </div>
                         </div>
                 </div>
@@ -309,7 +307,7 @@ const connectWalletHandler = async ( ) => {
                         <div className={styles.Select}>
                             <div className={styles.metadata} >
                                 <button onClick={toggle} className={`${styles.btn2} button is-small is-info is-light find`} >
-                                     <span > {tokenIn.name || "Select a Token"} </span><i className="fa-solid fa-angle-down ml-2"></i>
+                                     <span > {tokenIn.name || "Select a Token"} </span><BsFillCaretDownFill className="has-text-info ml-2"/> 
                                      </button>
                             </div>
                         </div>

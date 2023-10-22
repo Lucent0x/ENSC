@@ -20,6 +20,10 @@ export default function RootLayout({ children }) {
     //  trustWallet()
     // ]}  >
     <html lang="en">
+      <head>
+        <title> {metadata.title} </title>
+      <link rel="ensc icon" href="/ENSC.png" type="image/x-icon"/>
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
     // </ThirdwebProvider>
