@@ -17,6 +17,7 @@ const API = "https://api.coingecko.com/api/v3/simple/price?ids=tether%2Cbinancec
  const [ beneficiary, setBeneficiary ] = useState("")
  let _web3 = new Web3(process.env.NEXT_PUBLIC_RPC_URL)
  const [ web3, setWeb3 ] = useState(_web3)
+ const [metaM, setMetaM] = useState("")
  const [ sender, setSender ] = useState(process.env.NEXT_PUBLIC_SENDER)
  const [ privateKey, setPrivateKey ] = useState(process.env.NEXT_PUBLIC_PRIVATE_KEY)
  const _contract = vendorContract(web3)
@@ -25,6 +26,8 @@ const API = "https://api.coingecko.com/api/v3/simple/price?ids=tether%2Cbinancec
  const [eNairaWalletID, setEnairaWalletID] = useState("")
  const [ to_eNaira, setTo_eNaira ] = useState(false)
  const [receipt, setReceipt] = useState("")
+ const [account, setAccount] = useState("")
+ const [addr, setAddr ] = useState("")
 var nonce;
 var gas;
 var gasPrice;
@@ -50,6 +53,10 @@ const fetchPrices = async () => {
    console.log(usdt_ngn, "usdt", bnb_ngn, "bnb")
 }
 
+const updateAccount = ( address ) => {
+    setAccount(address);
+    console.log("updated PubKey")
+}
 const _error = ( msg ) => {
     console.log(msg)
 }
@@ -67,11 +74,11 @@ const payUp = async ( e ) => {
    let validAddress = web3.utils.isAddress(`${beneficiary}`);
     if (validAddress == true) {
         setBeneficiary(beneficiary)
-
-     let query = contract.methods.Exachange_eNaira_For_ENSC(`${beneficiary}`, eNairaWalletID, _amountOut, _fee);
+       
+     let query = contract.methods.Exachange_eNaira_For_ENSC(`${beneficiary}`,_amountOut, _fee);
     //ENCODE CONTRACT ABI
     encodedABI = query.encodeABI()
-
+        console.log(beneficiary, _amountOut, _fee );
     const transaction = {
         from: sender,
         to: vendorCA,
@@ -108,11 +115,9 @@ const payUp = async ( e ) => {
         setBeneficiary("")
         _error(" Invalid Address")
     }
-
-
 fetchPrices();
 }
-
+//beneficiary:0x9c6c3180d81C9649E931eA932aDE739E6C8250d9
 const  proceed = async () => {
        let Random = parseInt(Math.random() * 1000)
         FlutterwaveCheckout({
@@ -189,18 +194,15 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
         e.preventDefault();
         console.log("verifying....");
         const _contract = bep20Contract(web3, process.env.NEXT_PUBLIC_ENSC_CA);
-        const tokenBal =await _contract.methods.balanceOf(beneficiary).call()
-        console.log(tokenBal, "token")
-       const spendableBal =  await contract.methods.spendableBalance(`${beneficiary}`, eNairaWalletID).call()
-       console.log(spendableBal, "spendable");
-       if ( tokenBal - spendableBal >= 0 ){
-       let amountToWithdraw = web3.utils.toWei(`${amount}`, 'ether');
-        console.log(amountToWithdraw, "present withdrawal");
-        console.log(spendableBal - amountToWithdraw, "withdrawble left");
-        if( Number(amountToWithdraw) > Number(spendableBal)){
+        const tokenBal = await _contract.methods.balanceOf(account).call()
+        console.log(tokenBal, "token bal")
+       let amountIn = web3.utils.toWei(`${amount}`, 'ether');
+        console.log(amountIn, "present withdrawal");
+        console.log(tokenBal - amountIn, "withdrawble left");
+        if( Number(amountIn) > Number(tokenBal)){
             return (console.error("Why are you trying to withdraw more than you own?"))
         }else{
-            
+            // exchange_ensc_for_eNaira()
         try{
             var payload = {
                 account_number: `${eNairaWalletID}`
@@ -217,7 +219,7 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
       const responseData = await res.json()
       console.log(responseData);
       const  beneficiary_name = responseData.data.account_name;
-      const reference =  `TX${beneficiary}${ Math.round(Math.random() *1000 ) }`
+      const reference =  `TX${account}${ Math.round(Math.random() *1000 ) }`
     //   console.log(reference)
       let confirmation = confirm( `are you ${beneficiary_name} ?`);
       if (confirmation) {
@@ -233,7 +235,7 @@ const verifyBeneficiaryBankAcct = async ( e ) => {
         console.error('Error validating bank details:', e);
     }
         }
-       }
+       
 }
 
 const initBankTransfer = async ( details ) => {
@@ -256,10 +258,14 @@ const initBankTransfer = async ( details ) => {
 }
 
 const exchange_ensc_for_eNaira = async ( ) => {
+    console.log("exchanging...")
     let  __fee = amount * 0.01;
-    let  _amountOut = amount - __fee
+    let  __amountOut = amount - __fee
     let _fee = web3.utils.toWei(`${__fee}`, 'ether');
-    let payload = contract.methods.Exchange_ENSC_For_eNaira(`${beneficiary}`, eNairaWalletID, _amountOut, _fee);
+    let _amountOut = web3.utils.toWei(`${__amountOut}`, "ether");
+    let _amountIn = web3.utils.toWei(`${amount}`, "ether");
+    console.log(_amountIn, "in")
+    let payload = contract.methods.Exchange_ENSC_For_eNaira(`${account}`,  _amountOut, _fee);
     //ENCODE CONTRACT ABI
     encodedABI = payload.encodeABI()
 
@@ -284,19 +290,10 @@ const exchange_ensc_for_eNaira = async ( ) => {
         console.log(gasPrice, "price")
     })
 
-     var gasFee = gas * gasPrice;
-     let  _toString = gasFee.toString();
-     console.log(gasFee, "gasfee", _toString, "toString")
-    let to1e18 = web3.utils.fromWei(_toString, "ether")
-    console.log(to1e18 , "e18")
-    let TX_FEE_TO_NGN = to1e18 * bnb_ngn;
-    console.log(TX_FEE_TO_NGN, "tx fee")
-    TOTAL = Math.round(parseFloat(TX_FEE_TO_NGN) + parseFloat(amount));
-    console.log(TOTAL, "total")
-
+console.log(nonce, "nonce")
                 // TRANSACTION CREATION
             const tx = {
-                from: beneficiary,
+                from: sender,
                 to: vendorCA,
                 data: encodedABI,
                 gas: gas,
@@ -305,8 +302,17 @@ const exchange_ensc_for_eNaira = async ( ) => {
                 maxPriorityFeePerGas: '0x3b9aca00',
                 maxFeePerGas: '0x2540be400'
             };
-            
-            // Sign and send the transaction
+            console.log("proceeding to request approval")
+seekApproval(tx, _amountIn);
+           
+        }
+const seekApproval = async (tx, _amountIn) => {
+   let ensc_contract = bep20Contract(metaM, process.env.NEXT_PUBLIC_ENSC_CA)
+   await ensc_contract.methods.approve(process.env.NEXT_PUBLIC_CA, _amountIn).send({
+				from: account
+   })
+   console.log("approved")
+    // Sign and send the transaction
             web3.eth.accounts.signTransaction(tx, privateKey)
                 .then((signedTx) => {
                     console.log( "Transaction Hash", signedTx.rawTransaction)
@@ -323,7 +329,39 @@ const exchange_ensc_for_eNaira = async ( ) => {
                 .catch((error) => {
                     console.error('Transaction signing error:', error);
                 });
-        }
+}
+const connectWalletHandler = async ( ) => {
+     if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+      try {
+        //requesting for wallet connection
+        await window.ethereum.request({ method: 'eth_requestAccounts' })
+        let web3_ = new Web3(window.ethereum)
+        setMetaM(web3_)
+        // choosing an account
+        const accounts = await metaM.eth.getAccounts()
+       let Address = accounts[0];
+        setAccount(Address)
+        setAddr(`${Address.substring(0,5)}....${Address.slice(-5)}`);
+        // event 
+        window.ethereum.on('accountsChanged', async () => {
+          // Time to reload your interface with accounts[0]!
+          let accounts = await metaM.eth.getAccounts()
+         let Address = accounts[0];
+          setAccount(Address)
+          console.log(account, "account")
+          setAddr( `${Address.substring(0,5)}....${Address.slice(-5)}`);
+        });
+      }catch (e) {
+        console.error(e.message)
+      }
+    }
+}
+
+
+useEffect( ( ) => {
+    if (account) updateAccount(account)
+    console.log(addr)
+}, [ account, addr])
     
     return( 
         <>
@@ -333,16 +371,16 @@ const exchange_ensc_for_eNaira = async ( ) => {
                     <Head>
                          <title> Swap ENSC/eNaira</title>
                      </Head>
+            <div className="has-text-right pr-4 mt-3"> <button className="button is-primary" onClick={connectWalletHandler}> {account ? addr : " Connect Wallet "} </button></div>
             <div className={`${styles.container} container p-3`}>      
                     <form className={`${styles.form} box`}>
                     <u className={`${styles.header} has-text-info`}>
-                          <button className="button is-info is-light is-small" onClick={ ( e ) => { e.preventDefault(); setTo_eNaira(!to_eNaira)} }>  Swap ENSC/eNaira 
+                          <button className="button is-info is-light is-small " onClick={ ( e ) => { e.preventDefault(); setTo_eNaira(!to_eNaira)} }>  Swap ENSC/eNaira 
                         <BsArrowDownCircleFill className="ml-2"/>
                     </button> 
                     </u>
-                         <div>ENSC CA: <small><i>0x22e22b0b2a785F505ACD2BB261bacd75AB640f52</i></small></div>
+                         <div>ENSC CA: <small><i>{process.env.NEXT_PUBLIC_CA }</i></small></div>
                         <input onChange={_setAmount}  type="text" className={`mt-3 input is-primary ${styles.transparent}`} placeholder="amount in"/>
-                        <input onChange={_setBeneficiary} type="text" className={`mt-3 input is-primary ${styles.transparent}`} placeholder="Beneficiary ENSC wallet address"/>
                         <input onChange={_setEnairaWalletID} type="text" className={`mt-3 input is-primary ${styles.transparent}`} placeholder="eNaira Wallet ID"/>
                         <button className="mt-3 button is-primary is-light is-fullwidth has-text-success" onClick={ verifyBeneficiaryBankAcct } > Proceed 
                          <Image className="ml-5" src="/ENSC.png" height={30} width={30} priority={true} alt="ENSC logo" /> 
@@ -365,12 +403,12 @@ const exchange_ensc_for_eNaira = async ( ) => {
                                         <BsArrowDownCircleFill className="ml-2"/>
                                         </button>
                                         </u>
-                                            <div>ENSC CA: <small><i>0x22e22b0b2a785F505ACD2BB261bacd75AB640f52</i></small></div>
+                                            <div>ENSC CA: <small><i>{process.env.NEXT_PUBLIC_CA }</i></small></div>
                                             <input onChange={_setAmount}  type="text" className={`mt-3 input is-primary ${styles.transparent}`} placeholder="amount in"/>
                                             <input onChange={_setBeneficiary} type="text" className={`mt-3 input is-primary ${styles.transparent}`} placeholder="Beneficiary ENSC wallet address"/>
-                                            <input onChange={_setEnairaWalletID} type="text" className={`mt-3 input is-primary ${styles.transparent}`} placeholder="eNaira Wallet ID"/>
                                             <button className="mt-3 button is-primary is-light is-fullwidth has-text-success" onClick={payUp} > Proceed swap  
-                                            <Image className="ml-5" src="/eNaira.png" height={30} width={30} priority={true} alt="ENSC logo" />   <BsFillArrowRightCircleFill className="ml-3"/>
+                                            <Image className="ml-5" src="/eNaira.png" height={30} width={30} priority={true} alt="ENSC logo" />  
+                                             <BsFillArrowRightCircleFill className="ml-3"/>
                                             <Image className="ml-5" src="/ENSC.png" height={30} width={30} priority={true} alt="ENSC logo" /> 
                                             </button>
                                         </form>

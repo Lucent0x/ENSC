@@ -40,11 +40,7 @@ contract ENSC_Vendor {
     uint256 public whitelistedTokenCount;
     //blaclisted accounts
     mapping(address => bool) public isBlacklisted;
-    uint256 public blacklistCount;
-    //Balances of eNaira Wallet IDs
-    mapping ( address => bool ) public paid_eNaira;
-    mapping ( address => mapping ( uint256 => uint256 ) ) public spendableBalance;
-    ///make fuction to show key to bal and address to key
+    uint256 public blacklistCount;   ///make fuction to show key to bal and address to key
 
     /**
      * @param _wallet Address where collected funds will be forwarded to
@@ -115,11 +111,6 @@ contract ENSC_Vendor {
         _;
     }
 
-    modifier exclusiveAddress ( ){
-        require(!paid_eNaira[msg.sender], "This address can only transact ENSC/eNaira");
-        _;
-    }
-
     // -----------------------------------------
     // ENSC vendor external || public interface
     // -----------------------------------------
@@ -180,7 +171,6 @@ contract ENSC_Vendor {
      //buy with eNaira
     function Exachange_eNaira_For_ENSC(
         address _beneficiary,
-        uint256 _walletID,
         uint256 _tokens,
         uint256 _fee
     ) public onlyOwner onlyDuringPurchaseWindow {
@@ -189,27 +179,32 @@ contract ENSC_Vendor {
 
         // update state
         weiSold += _tokens;
-
         _processPurchase(_beneficiary, _tokens);
         emit TokenPurchase(msg.sender, _beneficiary, _tokens);
         _forwardFunds();
         //transfer fee
         ENSC_Token.transferFrom(admin, fees_Wallet, _fee);
-
-        paid_eNaira[_beneficiary] = true;
-        spendableBalance[_beneficiary][_walletID] += _tokens;
     }
 
 
     //swap ENSC/eNaira
     function Exchange_ENSC_For_eNaira  ( 
-        address _beneficiary, uint256 _walletID, uint256 _amountToLock, uint256 _fee
+        address _beneficiary, uint256 _amountOut, uint256 _fee
          ) public onlyOwner onlyAfterLockupPeriod {
-        require(spendableBalance[_beneficiary][_walletID] != 0, "incorrect wallet ID or Unspendable tokens");
-        require(_amountToLock <= spendableBalance[_beneficiary][_walletID], "unspendable tokens" );
-        spendableBalance[_beneficiary][_walletID] -= _amountToLock;
-        ENSC_Token.transferFrom(admin, fees_Wallet, _fee);
-        
+            uint256 _amountIn = _amountOut + _fee;
+            require(_amountOut > 0, "Amount out must be greater than zero.");
+        require(
+            ENSC_Token.allowance(_beneficiary, address(this)) >= _amountIn,
+            "Insufficient specified ENSC Token allowance"
+        );
+
+        require( 
+             ENSC_Token.transferFrom(_beneficiary, admin, _amountOut),
+             "Failed to transfer ENSC Tokens from user to Liquidity pool");
+
+       require( 
+         ENSC_Token.transferFrom(msg.sender, fees_Wallet, _fee),
+         "Failed to transfer ENSC Tokens from user to Liquidity pool");
         _forwardFunds();
     }
 
@@ -219,7 +214,7 @@ contract ENSC_Vendor {
         uint256 _amountOut,
         uint256 _fee
     ) public onlyDuringPurchaseWindow
-        notBlacklisted exclusiveAddress {
+        notBlacklisted {
         //check if token is whiteListed
         require(allowedTokens[_tokenIn], "This token isn't whiteListed");
 
@@ -259,7 +254,7 @@ contract ENSC_Vendor {
         uint256 _amountOut,
         uint256 _fee
     ) public onlyAfterLockupPeriod
-        notBlacklisted exclusiveAddress {
+        notBlacklisted {
         //Clearances
         require(
             _amountIn > 0,
